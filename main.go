@@ -52,7 +52,6 @@ func main() {
 				if v != nil {
 					http.Redirect(w, r, string(v), http.StatusFound)
 				} else {
-					// http.NotFound(w, r)
 					w.WriteHeader(http.StatusNotFound)
 					fmt.Fprintf(w, "Not found: %s", id)
 				}
