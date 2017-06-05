@@ -41,7 +41,7 @@ func main() {
 				return err
 			})
 
-			fmt.Fprintf(w, "%d", int(id))
+			fmt.Fprintf(w, "%s/%d", r.Host, int(id))
 			return
 		}
 		if r.Method == "GET" {
