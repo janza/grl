@@ -10,6 +10,14 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+func getSchemeAndHost(r *http.Request) string {
+	scheme := r.URL.Scheme
+	if scheme == "" {
+		scheme = r.Header.Get("X-Scheme")
+	}
+	return fmt.Sprintf("%s://%s", scheme, r.Host)
+}
+
 func main() {
 	db, err := bolt.Open("grl.db", 0600, nil)
 	if err != nil {
@@ -22,11 +30,12 @@ func main() {
 # grl: command line url shortener.
 #
 # Examples:
-#     grl google.com            # paste file (name/ext will be set).
-#     echo Hello world. | ix    # read from STDIN (won't set name/ext).
-#     ix -n 1 self_destruct.txt # paste will be deleted after one read.
-#     ix -i ID hello.txt        # replace ID, if you have permission.
-#     ix -d ID
+#     grl google.com
+
+if [[ "$1" = "" ]]; then
+  echo "missing url to shorten"
+  exit 1
+fi
 
 url=$(curl -s -X POST '{{.}}' -d "$1")
 if type "xsel" &> /dev/null; then
@@ -65,14 +74,14 @@ echo "$url"
 				return err
 			})
 
-			fmt.Fprintf(w, "%s/%d", r.Host, int(id))
+			fmt.Fprintf(w, "%s/%d", getSchemeAndHost(r), int(id))
 			return
 		}
 		if r.Method == "GET" {
 			if r.URL.Path == "/" {
 				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
-				t.Execute(w, r.URL.Scheme+r.Host+r.URL.RequestURI())
+				t.Execute(w, getSchemeAndHost(r))
 				return
 			}
 			db.View(func(tx *bolt.Tx) error {
@@ -83,7 +92,6 @@ echo "$url"
 					http.Redirect(w, r, string(v), http.StatusFound)
 				} else {
 					w.WriteHeader(http.StatusNotFound)
-
 					fmt.Fprintf(w, "Not found: %s", id)
 				}
 
