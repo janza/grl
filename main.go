@@ -8,12 +8,16 @@ import (
 	"strconv"
 
 	"github.com/boltdb/bolt"
+	"github.com/mvdan/xurls"
 )
 
 func getSchemeAndHost(r *http.Request) string {
 	scheme := r.URL.Scheme
 	if scheme == "" {
 		scheme = r.Header.Get("X-Scheme")
+	}
+	if scheme == "" {
+		scheme = "http"
 	}
 	return fmt.Sprintf("%s://%s", scheme, r.Host)
 }
@@ -33,21 +37,21 @@ func main() {
 #     grl google.com
 
 if [[ "$1" = "" ]]; then
-  echo "missing url to shorten"
-  exit 1
+	echo "missing url to shorten"
+	exit 1
 fi
 
 url=$(curl -s -X POST '{{.}}' -d "$1")
 if type "xsel" &> /dev/null; then
-  clip="xsel -ib"
+	clip="xsel -ib"
 elif type "xclip" &> /dev/null; then
-  clip="xclip -sel clip"
+	clip="xclip -sel clip"
 else
-  clip="pbcopy"
+	clip="pbcopy"
 fi
 echo "$url" | $clip
 echo "$url"
-`)
+	`)
 
 	bucketName := []byte("Urls")
 
@@ -60,28 +64,29 @@ echo "$url"
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		hostAndSchema := getSchemeAndHost(r)
 		if r.Method == "POST" {
-			var url bytes.Buffer
-			url.ReadFrom(r.Body)
+			var inputString bytes.Buffer
+			inputString.ReadFrom(r.Body)
+			fmt.Fprint(w, xurls.Relaxed.ReplaceAllStringFunc(inputString.String(), func(u string) string {
+				var id uint64
+				db.Update(func(tx *bolt.Tx) error {
+					b := tx.Bucket(bucketName)
+					id, _ = b.NextSequence()
 
-			// var idBytes []byte
-			var id uint64
-			db.Update(func(tx *bolt.Tx) error {
-				b := tx.Bucket(bucketName)
-				id, _ = b.NextSequence()
+					err := b.Put([]byte(strconv.Itoa(int(id))), []byte(u))
+					return err
+				})
+				return fmt.Sprintf("%s/%d", hostAndSchema, int(id))
+			}))
 
-				err := b.Put([]byte(strconv.Itoa(int(id))), url.Bytes())
-				return err
-			})
-
-			fmt.Fprintf(w, "%s/%d", getSchemeAndHost(r), int(id))
 			return
 		}
 		if r.Method == "GET" {
 			if r.URL.Path == "/" {
 				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
-				t.Execute(w, getSchemeAndHost(r))
+				t.Execute(w, hostAndSchema)
 				return
 			}
 			db.View(func(tx *bolt.Tx) error {
