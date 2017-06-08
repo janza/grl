@@ -56,7 +56,7 @@ echo "$url"
 	bucketName := []byte("Urls")
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket(bucketName)
+		_, err := tx.CreateBucketIfNotExists(bucketName)
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
