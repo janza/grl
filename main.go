@@ -55,41 +55,54 @@ echo "$url"
 
 	bucketName := []byte("Urls")
 
-	db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket(bucketName)
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		hostAndSchema := getSchemeAndHost(r)
 		if r.Method == "POST" {
 			var inputString bytes.Buffer
-			inputString.ReadFrom(r.Body)
+			_, err := inputString.ReadFrom(r.Body)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+			}
 			fmt.Fprint(w, xurls.Relaxed.ReplaceAllStringFunc(inputString.String(), func(u string) string {
 				var id uint64
-				db.Update(func(tx *bolt.Tx) error {
+				err := db.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket(bucketName)
 					id, _ = b.NextSequence()
 
 					err := b.Put([]byte(strconv.Itoa(int(id))), []byte(u))
 					return err
 				})
+				if err != nil {
+					http.Error(w, err.Error(), 500)
+				}
 				return fmt.Sprintf("%s/%d", hostAndSchema, int(id))
 			}))
 
 			return
 		}
+
 		if r.Method == "GET" {
 			if r.URL.Path == "/" {
 				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
-				t.Execute(w, hostAndSchema)
+				err := t.Execute(w, hostAndSchema)
+				if err != nil {
+					http.Error(w, err.Error(), 500)
+				}
 				return
 			}
-			db.View(func(tx *bolt.Tx) error {
+			err := db.View(func(tx *bolt.Tx) error {
 				b := tx.Bucket(bucketName)
 				id := []byte(r.URL.Path[1:])
 				v := b.Get(id)
@@ -102,6 +115,9 @@ echo "$url"
 
 				return nil
 			})
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+			}
 			return
 		}
 
