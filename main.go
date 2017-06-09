@@ -34,7 +34,8 @@ func main() {
 # grl: command line url shortener.
 #
 # Examples:
-#     grl google.com
+#     echo google.com | grl
+#     grl /path/to/file
 
 text=$(cat "${1:-/dev/stdin}")
 
