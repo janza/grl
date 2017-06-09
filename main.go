@@ -36,12 +36,9 @@ func main() {
 # Examples:
 #     grl google.com
 
-if [[ "$1" = "" ]]; then
-	echo "missing url to shorten"
-	exit 1
-fi
+text=$(cat "${1:-/dev/stdin}")
 
-url=$(curl -s -X POST '{{.}}' -d "$1")
+url=$(curl -s -X POST '{{.}}' -d "$text")
 if type "xsel" &> /dev/null; then
 	clip="xsel -ib"
 elif type "xclip" &> /dev/null; then
