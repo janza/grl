@@ -37,6 +37,8 @@ func main() {
 #     echo google.com | grl
 #     grl /path/to/file
 
+set -e
+
 text=$(cat "${1:-/dev/stdin}")
 
 url=$(curl -s -X POST '{{.}}' -d "$text")
