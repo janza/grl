@@ -81,6 +81,9 @@ echo "$url"
 			}
 			fmt.Fprint(w, xurls.Relaxed.ReplaceAllStringFunc(inputString.String(), func(u string) string {
 				var id uint64
+				if u[:4] != "http" {
+					u = "http://" + u
+				}
 				err := db.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket(bucketName)
 					id, _ = b.NextSequence()
