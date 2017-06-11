@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"strconv"
 
 	"github.com/boltdb/bolt"
 	"github.com/mvdan/xurls"
@@ -88,13 +87,15 @@ echo "$url"
 					b := tx.Bucket(bucketName)
 					id, _ = b.NextSequence()
 
-					err := b.Put([]byte(strconv.Itoa(int(id))), []byte(u))
+					hexId := []byte(fmt.Sprintf("%x", id))
+
+					err := b.Put(hexId, []byte(u))
 					return err
 				})
 				if err != nil {
 					http.Error(w, err.Error(), 500)
 				}
-				return fmt.Sprintf("%s/%d", hostAndSchema, int(id))
+				return fmt.Sprintf("%s/%x", hostAndSchema, id)
 			}))
 
 			return
