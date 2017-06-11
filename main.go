@@ -41,6 +41,11 @@ set -e
 
 text=$(cat "${1:-/dev/stdin}")
 
+if [[ text == "" ]]; then
+    >&2 echo "empty input"
+    exit 1
+fi
+
 url=$(curl -s -X POST '{{.}}' -d "$text")
 if type "xsel" &> /dev/null; then
 	clip="xsel -ib"
