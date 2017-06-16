@@ -40,7 +40,7 @@ set -e
 
 text=$(cat "${1:-/dev/stdin}")
 
-if [[ text == "" ]]; then
+if [[ $text == "" ]]; then
     >&2 echo "empty input"
     exit 1
 fi
