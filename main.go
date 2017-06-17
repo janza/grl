@@ -79,6 +79,9 @@ echo "$url"
 				http.Error(w, err.Error(), 500)
 			}
 			fmt.Fprint(w, xurls.Relaxed.ReplaceAllStringFunc(inputString.String(), func(u string) string {
+				if len(u) < 60 {
+					return u
+				}
 				var id uint64
 				if u[:4] != "http" {
 					u = "http://" + u
