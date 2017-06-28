@@ -32,9 +32,9 @@ func main() {
 
 # grl: command line url shortener.
 #
-# Requires 'xsel', 'xclip' or 'pbcopy'
+# Requires: xsel, xclip or pbcopy
 #
-# Installation curl '{{.}}' > /usr/bin/grl && chmod +x /usr/bin/grl
+# Installation: curl '{{.}}' > /usr/bin/grl && chmod +x /usr/bin/grl
 #
 # Source: https://github.com/janza/grl
 #
