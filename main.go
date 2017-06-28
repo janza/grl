@@ -34,7 +34,7 @@ func main() {
 #
 # Requires: xsel, xclip or pbcopy
 #
-# Installation: curl '{{.}}' > /usr/bin/grl && chmod +x /usr/bin/grl
+# Installation: curl '{{.}}' | sudo tee /usr/bin/grl && chmod +x /usr/bin/grl
 #
 # Source: https://github.com/janza/grl
 #
