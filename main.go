@@ -32,7 +32,13 @@ func main() {
 
 # grl: command line url shortener.
 #
-# Examples:
+# Requires 'xsel', 'xclip' or 'pbcopy'
+#
+# Installation curl '{{.}}' > /usr/bin/grl && chmod +x /usr/bin/grl
+#
+# Source: https://github.com/janza/grl
+#
+# Example usage:
 #     echo google.com | grl
 #     grl /path/to/file
 
@@ -45,15 +51,20 @@ if [[ $text == "" ]]; then
     exit 1
 fi
 
+copy_to_clipboard() {
+	if type "xsel" &> /dev/null; then
+		clip="xsel -ib"
+	elif type "xclip" &> /dev/null; then
+		clip="xclip -sel clip"
+	else
+		clip="pbcopy"
+	fi
+	echo -n "$1" | $clip
+}
+
 url=$(curl -s -X POST '{{.}}' -d "$text")
-if type "xsel" &> /dev/null; then
-	clip="xsel -ib"
-elif type "xclip" &> /dev/null; then
-	clip="xclip -sel clip"
-else
-	clip="pbcopy"
-fi
-echo "$url" | $clip
+
+copy_to_clipboard "$url"
 echo "$url"
 	`)
 
