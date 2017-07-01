@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 
 	"github.com/boltdb/bolt"
 	"github.com/mvdan/xurls"
@@ -148,6 +149,10 @@ echo "$url"
 		fmt.Fprintf(w, "Not Allowed")
 	})
 
-	fmt.Print(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Print(http.ListenAndServe(":"+port, nil))
 
 }
