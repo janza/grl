@@ -118,7 +118,6 @@ echo "$url"
 
 		if r.Method == "GET" {
 			if r.URL.Path == "/" {
-				w.WriteHeader(http.StatusNotFound)
 				w.Header().Set("Content-Type", "text/plain")
 				err := t.Execute(w, hostAndSchema)
 				if err != nil {
